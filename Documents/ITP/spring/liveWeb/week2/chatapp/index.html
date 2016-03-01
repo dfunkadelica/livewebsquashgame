@@ -1,0 +1,82 @@
+<html>
+
+		<style type="text/css">
+		/*selector {property: value;}*/
+		body {
+			margin: 7;
+			background-attachment: fixed; 
+			background-position: center;
+			background-size: cover;
+			background-color: #80bfff; 
+		}
+
+		#user-input {
+			margin-bottom: 30px;
+		}
+
+		</style>
+	<head>
+		<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+		<script type="text/javascript">
+
+		var socket = io.connect('http://dib251.itp.io:8080/');
+			
+			socket.on('connect', function() {
+				console.log("Connected");
+			});
+		
+			 var encouragements =[
+			" ", 
+			" ",
+			"That's right",
+			"Just type and push submit",
+			" ",
+			"See, you're not that old",
+			"Keep going"
+			]
+			i = encouragements.length-1;
+
+			
+
+			// Receive from any event
+			socket.on('chatmessage', function (data) {
+				console.log(data);
+
+		
+				var oldMessages = document.getElementById('messages').innerHTML;
+				console.log(oldMessages);
+				document.getElementById('messages').innerHTML = "" + data + '<br>' + oldMessages + '<br>' + encouragements[i];
+				i--;
+
+			});
+			
+			var sendmessage = function(message) {
+				console.log("chatmessage: " + message);
+				socket.emit('chatmessage', message);
+			};
+
+
+	
+		</script>	
+	</head>
+ <body>
+ 	<div>
+		<font size= "8" color= "black" >Invitation to Chat, </font>
+		</div>
+	<div>
+		<font size= "5" color= "black" >A new chat app for an old generation</font>
+	</div>
+ 
+ <div id="user-input">
+		 <input type="text" id="message" name="message">
+		 <input type="submit" value="submit" onclick="sendmessage(document.getElementById('message').value);">
+		 <!-- <input id="submit-message" type="submit" value="submit" > -->
+	</div>
+	<div id="messages">
+ 
+ </div>
+
+ 
+ 
+ </body>
+</html>
