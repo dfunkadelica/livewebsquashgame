@@ -1,0 +1,76 @@
+<!-- draw program addapted from http://code-and.coffee/post/2015/collaborative-drawing-canvas-node-websocket/ -->
+<html>
+<!-- <style type="text/css"></style> -->
+	<head>
+
+<script src="/socket.io/socket.io.js"></script>
+		<script type="text/javascript">
+
+			var socket = io.connect('https://dib251.itp.io:8080/');
+
+			socket.on('connect', function() {
+				console.log("Connected " + socket.id);
+				socket.emit("I'm here");
+				
+			});
+
+	document.addEventListener("drawLoad", function() {
+		console.log("drawLoad funct");
+   		var mouse = { 
+     	click: false,
+      	move: false,
+      	pos: {x:0, y:0},
+      	pos_prev: false
+   };
+   
+   // get canvas element and create context
+	   var canvas  = document.getElementById('drawing');
+	   var context = canvas.getContext('2d');
+	   var width   = window.innerWidth;
+	   var height  = window.innerHeight;
+	   var socket  = io.connect();
+
+   // set canvas to full browser width/height
+	   canvas.width = width;
+	   canvas.height = height;
+
+   // register mouse event handlers
+   canvas.onmousedown = function(e){ mouse.click = true; };
+   canvas.onmouseup = function(e){ mouse.click = false; };
+
+   canvas.onmousemove = function(e) {
+   	console.log("onmousemove";)
+      // make mouse movement and canvas relative to eachother, so everyone can see all the movement
+      mouse.pos.x = e.clientX / width;
+      mouse.pos.y = e.clientY / height;
+      mouse.move = true;
+   };
+
+   // draw line received from server
+	socket.on('draw_line', function (data) {
+		console.log("draw_line: " data);	
+      var line = data.line;
+      context.beginPath();
+      context.moveTo(line[0].x * width, line[0].y * height);
+      context.lineTo(line[1].x * width, line[1].y * height);
+      context.stroke();
+   });
+   
+   // main loop, running every 25ms
+   function mainLoop() {
+   	console.log("mainLoop");
+      // check if the user is drawing
+      if (mouse.click && mouse.move && mouse.pos_prev) {
+         // send line to to the server
+         socket.emit('draw_line', { line: [ mouse.pos, mouse.pos_prev ] });
+         mouse.move = false;
+      }
+      mouse.pos_prev = {x: mouse.pos.x, y: mouse.pos.y};
+      setTimeout(mainLoop, 25);
+   }
+   mainLoop();
+});
+
+		</script>
+	</head>
+</html>	
